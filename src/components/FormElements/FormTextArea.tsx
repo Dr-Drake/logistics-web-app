@@ -3,8 +3,8 @@
 import React from "react";
 import { twMerge } from "tailwind-merge";
 
-export interface FormInputProps extends 
-React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>{
+export interface FormTextAreaProps extends 
+React.DetailedHTMLProps<React.TextareaHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement>{
     error?: boolean;
     success?: boolean;
     errorMessage?: string;
@@ -17,7 +17,7 @@ React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputEl
 }
 
 // eslint-disable-next-line react/display-name
-const FormInput = React.forwardRef<HTMLInputElement,FormInputProps>(({
+const FormTextArea = React.forwardRef<HTMLTextAreaElement, FormTextAreaProps>(({
     error = false, 
     success = false,
     errorMessage = 'This field is required', 
@@ -98,7 +98,7 @@ const FormInput = React.forwardRef<HTMLInputElement,FormInputProps>(({
                         { startAdornment }
                     </div>
                 }
-                <input
+                <textarea
                     ref={ref}
                     id={id}
                     { ...props }
@@ -121,4 +121,4 @@ const FormInput = React.forwardRef<HTMLInputElement,FormInputProps>(({
     )
 })
 
-export default FormInput;
+export default FormTextArea;
