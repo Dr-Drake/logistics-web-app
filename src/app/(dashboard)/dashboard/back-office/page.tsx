@@ -11,7 +11,6 @@ import CustomSkeleton from "@/components/CustomSkeleton";
 import { ToastNotify } from "@/utils/helperFunctions/toastNotify";
 import AssignDelivery from "./views/AssignDelivery";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/hooks/useSession";
 import FormInput from "@/components/FormElements/FormInput";
 import { CiSearch } from "react-icons/ci";
 import { IoIosArrowDown } from "react-icons/io";
@@ -23,6 +22,8 @@ import { PaginatedResponse } from "@/types/responses/PaginatedResponse";
 import PackageDetails from "./views/PackageDetails";
 import TrackingInfo from "./views/TrackingInfo";
 import { UpdatePackagePayload } from "@/types/requests/PackagePayload";
+import { useAuth } from "@/providers/AuthProvider";
+import { getStatusColorClass } from "@/utils/colorUtils";
 
 
 backendClient.setToken(getSessionToken() || '');
@@ -33,7 +34,8 @@ export default function BackOfficeHome() {
 
     // Hooks
     const router = useRouter()
-    const session = useSession();
+    // const session = useSession();
+    const { session } = useAuth()
 
     type RowHash = {
         [key: string]: any;
@@ -146,13 +148,20 @@ export default function BackOfficeHome() {
         }))
 
     }
-    const handleAssignBtnLabelText = (status: PackageStatus) => {
-        switch (status) {
+    const handleAssignBtnLabelText = (pckage: PackageAdminListData) => {
+        switch (pckage.status) {
             case PackageStatus.AVAILABLE_FOR_PICKUP:
+                if (pckage.pickUpRider.includes("00000000")) {
+                    return {
+                        text: 'Assign',
+                        disabled: false
+                    };
+                }
                 return {
-                    text: 'Assign',
-                    disabled: false
+                    text: 'Assigned',
+                    disabled: true
                 };
+                
             case PackageStatus.UNDELIVERED:
                 return {
                     text: 'Reassign',
@@ -188,7 +197,7 @@ export default function BackOfficeHome() {
             for (let i = 0; i < values.length; i++) {
                 let item = values[i];
 
-                if (!handleAssignBtnLabelText(item.status).disabled) {
+                if (!handleAssignBtnLabelText(item).disabled) {
                     cloneHash[item.trackingNumber] = item;
                 }
             } 
@@ -250,7 +259,7 @@ export default function BackOfficeHome() {
 
     const handleAssignPackage = (packageData?: PackageAdminListData)=>{
         if (packageData) {
-            if (!handleAssignBtnLabelText(packageData.status).disabled) {
+            if (!handleAssignBtnLabelText(packageData).disabled) {
                 if (!rowHash[packageData.trackingNumber]) {
                     handleSelect(packageData.trackingNumber);
                 }
@@ -258,43 +267,13 @@ export default function BackOfficeHome() {
             }
         }
     }
+    const handleOnAssign = ()=>{
+        setViews('main');
+        setRowHash({});
+        fetchAdminPackageList(query);
+    }
 
     // Helpers
-    const getStatusColorClass = (status: PackageStatus) =>{
-        switch (status) {
-            case PackageStatus.IN_DELIVERY:
-                return {
-                    text: "text-[#2d9bdb]",
-                    border: "border-[#2d9bdb]"
-                }
-
-            case PackageStatus.UNDELIVERED:
-                return {
-                    text: "text-[#EB5757]",
-                    border: "border-[#EB5757]"
-                }
-            case PackageStatus.WAREHOUSE:
-                return {
-                    text: "text-[#F2994A]",
-                    border: "border-[#F2994A]"
-                }
-            case PackageStatus.DELIVERED:
-                return {
-                    text: "text-[#219653]",
-                    border: "border-[#219653]"
-                }
-            case PackageStatus.SLA_BREACH:
-                return {
-                    text: "text-[#F2C94C]",
-                    border: "border-[#F2C94C]"
-                }
-            default:
-                return {
-                    text: "text-black",
-                    border: "border-black"
-                };
-        }
-    }
     const renderRows = ()=>{
         let rows = [];
 
@@ -314,7 +293,7 @@ export default function BackOfficeHome() {
                                 <FormCheckbox
                                     checked={!!rowHash[packageData.trackingNumber]}
                                     onChecked={()=> handleSelect(packageData.trackingNumber)} 
-                                    disabled={handleAssignBtnLabelText(packageData.status).disabled}
+                                    disabled={handleAssignBtnLabelText(packageData).disabled}
                                 />
                                 <p className="font-bold">
                                     { packageData.trackingNumber }
@@ -339,7 +318,7 @@ export default function BackOfficeHome() {
                                 <button 
                                     onClick={
                                         ()=>{
-                                            if (!handleAssignBtnLabelText(packageData.status).disabled) {
+                                            if (!handleAssignBtnLabelText(packageData).disabled) {
                                                 if (!rowHash[packageData.trackingNumber]) {
                                                     handleSelect(packageData.trackingNumber);
                                                 }
@@ -347,10 +326,10 @@ export default function BackOfficeHome() {
                                             }
                                         }
                                     }
-                                    disabled={handleAssignBtnLabelText(packageData.status).disabled}
+                                    disabled={handleAssignBtnLabelText(packageData).disabled}
                                     className='min-w-[95px] inline-flex items-center justify-center px-4 h-10 text-sm text-center text-white bg-black disabled:text-black disabled:bg-[#f2f2f2] rounded-lg font-normal'
                                 >
-                                    { handleAssignBtnLabelText(packageData.status).text }
+                                    { handleAssignBtnLabelText(packageData).text }
                                 </button>
 
                                 <button
@@ -509,6 +488,7 @@ export default function BackOfficeHome() {
                     packageListData={Object.values(rowHash)}
                     onGoBack={handleGoBack}
                     onAddDelivery={handleGoBack}
+                    onAssign={handleOnAssign}
                 />
             }
             { 

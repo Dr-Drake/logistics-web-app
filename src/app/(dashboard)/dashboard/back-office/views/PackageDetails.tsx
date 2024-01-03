@@ -1,8 +1,5 @@
 "use client"
 
-import CustomSkeleton from '@/components/CustomSkeleton';
-import { useRiders } from '@/hooks/useRiders';
-import { useSession } from '@/hooks/useSession';
 import { PaginatedQuery } from '@/types/requests/PaginatedQuery';
 import { PackageAdminListData, PackageStatus } from '@/types/responses/PackageAdminListData';
 import { ToastNotify } from '@/utils/helperFunctions/toastNotify';
@@ -24,10 +21,6 @@ const PackageDetails: React.FC<AssignDeliveryProps> = ({
     packageData, onAddDelivery, onGoBack, onUpdateTracking, onAssign
 })=>{
 
-    // Hooks
-    const router = useRouter()
-    const session = useSession();
-
     // State
     const [query, setQuery] = React.useState<PaginatedQuery>({
         pagedQuery:{
@@ -37,13 +30,20 @@ const PackageDetails: React.FC<AssignDeliveryProps> = ({
     });
 
     // Helpers
-    const handleAssignBtnLabelText = (status?: PackageStatus) => {
-        switch (status) {
+    const handleAssignBtnLabelText = (pckage?: PackageAdminListData) => {
+        switch (pckage?.status) {
             case PackageStatus.AVAILABLE_FOR_PICKUP:
+                if (pckage?.pickUpRider.includes("00000000")) {
+                    return {
+                        text: 'Assign',
+                        disabled: false
+                    };
+                }
                 return {
-                    text: 'Assign',
-                    disabled: false
+                    text: 'Assigned',
+                    disabled: true
                 };
+                
             case PackageStatus.UNDELIVERED:
                 return {
                     text: 'Reassign',
@@ -232,11 +232,11 @@ const PackageDetails: React.FC<AssignDeliveryProps> = ({
                     Update Tracking
                 </button>
                 <button
-                    disabled={handleAssignBtnLabelText(packageData?.status).disabled}
+                    disabled={handleAssignBtnLabelText(packageData).disabled}
                     onClick={handleAssign}
-                    className={`min-w-[136px] inline-flex items-center justify-center px-4 h-10 text-sm text-center rounded-full ${handleAssignBtnLabelText(packageData?.status).disabled ? 'text-black bg-white border border-black' : 'text-white bg-black'}`}
+                    className={`min-w-[136px] inline-flex items-center justify-center px-4 h-10 text-sm text-center rounded-full ${handleAssignBtnLabelText(packageData).disabled ? 'text-black bg-white border border-black' : 'text-white bg-black'}`}
                 >
-                    { handleAssignBtnLabelText(packageData?.status).text }
+                    { handleAssignBtnLabelText(packageData).text }
                 </button>
             </div>
 

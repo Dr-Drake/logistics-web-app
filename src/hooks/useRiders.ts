@@ -1,6 +1,5 @@
 import { PaginatedQuery } from "@/types/requests/PaginatedQuery";
 import { ApiResponse } from "@/types/responses/ApiResponse";
-import { PackageAdminListData } from "@/types/responses/PackageAdminListData";
 import { PaginatedResponse } from "@/types/responses/PaginatedResponse";
 import { getCookie } from "cookies-next";
 import axios, { AxiosResponse } from "axios";
